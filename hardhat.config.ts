@@ -23,6 +23,7 @@ task('accounts', 'Prints the list of accounts', async (args, hre) => {
 const ETH_TEST_KEY = process.env.ETH_TEST_PKEY;
 const ALCHEMY_KEY = process.env.ALCHEMY_KEY;
 const ETHERSCAN_KEY = process.env.ETHERSCAN_KEY;
+const BSCSCAN_KEY = process.env.BSCSCAN_KEY;
 const ETH_MAIN_KEY = fs.readFileSync('./.secret').toString();
 
 export default {
@@ -79,7 +80,7 @@ export default {
       accounts: [ETH_MAIN_KEY],
       //gas: 120000000000,
       // blockGasLimit: 120000000000,
-      gasPrice: 600000000000,
+      gasPrice: 180000000000,
       timeout: 1000000,
     },
     rinkeby: {
@@ -90,11 +91,25 @@ export default {
       //gasPrice: 10,
       timeout: 300000,
     },
+    bscMainnetTest: {
+      url: 'https://bsc-dataseed.binance.org/',
+      chainId: 56,
+      accounts: [ETH_TEST_KEY],
+      gasPrice: 10000000000,
+      timeout: 3000000,
+    },
+    bscMainnet: {
+      url: 'https://bsc-dataseed.binance.org/',
+      chainId: 56,
+      accounts: [ETH_MAIN_KEY],
+      gasPrice: 10000000000,
+      timeout: 3000000,
+    },
   },
-  ...(ETHERSCAN_KEY
+  ...(BSCSCAN_KEY
     ? {
         etherscan: {
-          apiKey: ETHERSCAN_KEY,
+          apiKey: BSCSCAN_KEY,
         },
       }
     : {}),

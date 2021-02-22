@@ -10,9 +10,9 @@ https://premia.finance
   https://etherscan.io/address/0xF49e0FDBf4839afAeb825EB448AA24B1C43E946b
 - **PremiaDevFund** : 3 days timelocked withdrawal for dev fund (Owned by multisig)  
   https://etherscan.io/address/0xE43147dAa592C3f88402C6E2b932DB9d97bc1C7f
+  https://etherscan.io/address/0x81d6F46981B4fE4A6FafADDa716eE561A17761aE
 - **PremiaErc20** : The Premia token  
   https://etherscan.io/token/0x6399C842dD2bE3dE30BF99Bc7D1bBF6Fa3650E70
-  https://etherscan.io/address/0x81d6F46981B4fE4A6FafADDa716eE561A17761aE
 - **PremiaFeeDiscount** : Lock xPremia to get protocol fee discount  
   https://etherscan.io/address/0xF5aae75D1AD6fDD62Cce66137F2674c96FEda854
 - **PremiaMaker** : Swap protocol fees to ETH, used ETH to purchase Premia on the bonding curve and send Premia to PremiaStaking contract  

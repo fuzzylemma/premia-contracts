@@ -115,14 +115,14 @@ async function main() {
   const premiaOptionDai = await new PremiaOption__factory(deployer).deploy(
     uri,
     dai,
-    contracts.uPremia.address,
+    ZERO_ADDRESS,
     contracts.feeCalculator.address,
     contracts.premiaReferral.address,
     treasury,
   );
 
   console.log(
-    `premiaOption dai deployed at ${premiaOptionDai.address} (Args : ${uri} / ${dai} / ${contracts.uPremia.address} / 
+    `premiaOption dai deployed at ${premiaOptionDai.address} (Args : ${uri} / ${dai} / ${ZERO_ADDRESS} / 
     ${contracts.feeCalculator.address} / ${contracts.premiaReferral.address} / ${treasury})`,
   );
 
@@ -160,14 +160,14 @@ async function main() {
   //
 
   const premiaMarket = await new PremiaMarket__factory(deployer).deploy(
-    contracts.uPremia.address,
+    ZERO_ADDRESS,
     contracts.feeCalculator.address,
     treasury,
     contracts.premiaReferral.address,
   );
 
   console.log(
-    `premiaMarket deployed at ${premiaMarket.address} (Args : ${contracts.uPremia.address} / ${contracts.feeCalculator.address} / ${treasury})`,
+    `premiaMarket deployed at ${premiaMarket.address} (Args : ${ZERO_ADDRESS} / ${contracts.feeCalculator.address} / ${treasury})`,
   );
 
   await contracts.premiaReferral.addWhitelisted([
@@ -192,24 +192,8 @@ async function main() {
   await contracts.premiaMaker.addWhitelistedRouter(uniswapRouters);
   console.log('Whitelisted uniswap routers on PremiaMaker');
 
-  await contracts.uPremia.addWhitelisted([
-    premiaMarket.address,
-    contracts.premiaMining.address,
-  ]);
-  console.log('Whitelisted PremiaMarket and PremiaMining on uPremia');
-
   await premiaMarket.addWhitelistedPaymentTokens([dai]);
   console.log('Added dai as market payment token');
-
-  await contracts.uPremia.addMinter([
-    // premiaOptionEth.address,
-    premiaOptionDai.address,
-    premiaMarket.address,
-  ]);
-  console.log('Added premiaOption dai and premiaMarket as uPremia minters');
-
-  await contracts.premiaMining.add(1e4, contracts.uPremia.address, false);
-  console.log('Added uPremia mining pool on PremiaMining');
 
   // DevFund contract
   const devFund = await new PremiaDevFund__factory(deployer).deploy(
@@ -277,32 +261,11 @@ async function main() {
   await premiaMarket.transferOwnership(treasury);
   console.log(`PremiaMarket ownership transferred to ${treasury}`);
 
-  await contracts.premiaMining.transferOwnership(treasury);
-  console.log(`PremiaMining ownership transferred to ${treasury}`);
-
   await premiaOptionDai.transferOwnership(treasury);
   console.log(`PremiaOption DAI ownership transferred to ${treasury}`);
 
-  await contracts.premiaPBC.transferOwnership(treasury);
-  console.log(`PremiaPBC ownership transferred to ${treasury}`);
-
   await contracts.premiaReferral.transferOwnership(treasury);
   console.log(`PremiaReferral ownership transferred to ${treasury}`);
-
-  await contracts.uPremia.transferOwnership(treasury);
-  console.log(`PremiaUncutErc20 ownership transferred to ${treasury}`);
-
-  await contracts.priceProvider.transferOwnership(treasury);
-  console.log(`PriceProvider ownership transferred to ${treasury}`);
-
-  // ToDo after deployment :
-  //  - Send Premia to founder vesting contracts
-  //  - Send Premia to PremiaMining contracts
-  //  - Send Premia to DevFund contract
-  //  - Send Premia to PremiaMining contract
-  //  - Send Premia to PremiaPBC contract through addPremia call
-  //  - Send bonding curve allocation to multisig
-  //  - Set token prices on PriceProvider
 }
 
 // We recommend this pattern to be able to use async/await everywhere
