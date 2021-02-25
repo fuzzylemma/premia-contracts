@@ -85,7 +85,7 @@ async function main() {
   const premiaOptionBusd = await new PremiaOption__factory(deployer).deploy(
     uri,
     busd,
-    ZERO_ADDRESS,
+    feeCalculator.address,
     ZERO_ADDRESS,
     premiaReferral.address,
     treasury,
