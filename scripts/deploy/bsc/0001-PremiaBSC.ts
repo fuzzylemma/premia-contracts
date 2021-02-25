@@ -1,7 +1,10 @@
 import { ethers } from 'hardhat';
 import {
+  FeeCalculator__factory,
+  PremiaFeeDiscount__factory,
   PremiaMarket__factory,
   PremiaOption__factory,
+  PremiaReferral__factory,
 } from '../../../contractsTyped';
 import { BigNumberish } from 'ethers';
 import { deployContracts } from '../../deployContracts';
@@ -9,35 +12,73 @@ import { parseEther } from 'ethers/lib/utils';
 import { ZERO_ADDRESS } from '../../../test/utils/constants';
 
 async function main() {
-  const isTestnet = true;
   const [deployer] = await ethers.getSigners();
 
   let busd: string;
-  // let weth: string;
-  // let wbtc: string;
-  let premia: string | undefined;
   let treasury: string;
   let tokens: { [addr: string]: BigNumberish } = {};
   let uniswapRouters = [
     '0x05fF2B0DB69458A0750badebc4f9e13aDd608C7F', // PancakeSwap router
   ];
 
-  premia = '';
   busd = '0xe9e7cea3dedca5984780bafc599bd69add087d56';
-  // treasury = '';
-  treasury = deployer.address;
+  treasury = '0x2332Cc88B8355E07E7334265c52B292fd43547CA';
 
-  let uri = 'https://premia.finance/api/bsc/dai/{id}.json';
+  let uri = 'https://premia.finance/api/bsc/busd/{id}.json';
+
+  // CAKE
+  tokens['0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82'] = parseEther('2.5');
+
+  // DOT
+  tokens['0x7083609fce4d1d8dc0c979aab8c869ea2c873402'] = parseEther('5');
+
+  // ETH
+  tokens['0x2170ed0880ac9a755fd29b2688956bd959f933f8'] = parseEther('250');
+
+  // WBNB
+  tokens['0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c'] = parseEther('25');
+
+  // UNI
+  tokens['0xbf5140a22578168fd562dccf235e5d43a02ce9b1'] = parseEther('2.5');
+
+  // LINK
+  tokens['0xf8a0bf9cf54bb92f17374d9e9a321e6a111a51bd'] = parseEther('2.5');
+
+  // BAND
+  tokens['0xad6caeb32cd2c308980a548bd0bc5aa4306c6c18'] = parseEther('2.5');
+
+  // VENUS
+  tokens['0xcf6bb5389c92bdda8a3747ddb454cb7a64626c63'] = parseEther('10');
+
+  // ADA
+  tokens['0x3ee2200efb3400fabb9aacf31297cbdd1d435d47'] = parseEther('0.1');
+
+  // YFI
+  tokens['0x88f1a5ae2a3bf98aeaf342d26b30a79438c9142e'] = parseEther('5000');
+
+  // BUNNY
+  tokens['0xc9849e6fdb743d08faee3e34dd2d1bc69ea11a51'] = parseEther('10');
+
+  // AUTOv2
+  tokens['0xa184088a740c695e156f91f5cc086a06bb78b827'] = parseEther('1000');
+
+  // XRP
+  tokens['0x1d2f0da169ceb9fc7b3144628db156f3f6c60dbe'] = parseEther('0.0');
+
+  // EOS
+  tokens['0x56b6fb708fc5732dec1afc8d8556423a2edccbd6'] = parseEther('0.5');
 
   //
 
-  const contracts = await deployContracts(
-    deployer,
-    treasury,
-    isTestnet,
-    true,
-    premia,
+  const feeCalculator = await new FeeCalculator__factory(deployer).deploy(
+    ZERO_ADDRESS,
   );
+  console.log(
+    `FeeCalculator deployed at ${feeCalculator.address} (Args : ${ZERO_ADDRESS})`,
+  );
+
+  const premiaReferral = await new PremiaReferral__factory(deployer).deploy();
+  console.log(`PremiaReferral deployed at ${premiaReferral.address}`);
 
   //
 
@@ -45,14 +86,14 @@ async function main() {
     uri,
     busd,
     ZERO_ADDRESS,
-    contracts.feeCalculator.address,
-    contracts.premiaReferral.address,
+    ZERO_ADDRESS,
+    premiaReferral.address,
     treasury,
   );
 
   console.log(
-    `premiaOption dai deployed at ${premiaOptionBusd.address} (Args : ${uri} / ${busd} / ${ZERO_ADDRESS} / 
-    ${contracts.feeCalculator.address} / ${contracts.premiaReferral.address} / ${treasury})`,
+    `premiaOption busd deployed at ${premiaOptionBusd.address} (Args : ${uri} / ${busd} / ${ZERO_ADDRESS} / 
+    ${ZERO_ADDRESS} / ${premiaReferral.address} / ${treasury})`,
   );
 
   //
@@ -67,39 +108,22 @@ async function main() {
 
   await premiaOptionBusd.setTokens(tokenAddresses, tokenStrikeIncrements);
 
-  console.log('Tokens for DAI options added');
-
-  //
-
-  await contracts.premiaFeeDiscount.setStakeLevels([
-    { amount: parseEther('5000'), discount: 2500 }, // -25%
-    { amount: parseEther('50000'), discount: 5000 }, // -50%
-    { amount: parseEther('250000'), discount: 7500 }, // -75%
-    { amount: parseEther('500000'), discount: 9500 }, // -95%
-  ]);
-  console.log('Added PremiaFeeDiscount stake levels');
-
-  const oneMonth = 30 * 24 * 3600;
-  await contracts.premiaFeeDiscount.setStakePeriod(oneMonth, 10000);
-  await contracts.premiaFeeDiscount.setStakePeriod(3 * oneMonth, 12500);
-  await contracts.premiaFeeDiscount.setStakePeriod(6 * oneMonth, 15000);
-  await contracts.premiaFeeDiscount.setStakePeriod(12 * oneMonth, 20000);
-  console.log('Added premiaFeeDiscount stake periods');
+  console.log('Tokens for BUSD options added');
 
   //
 
   const premiaMarket = await new PremiaMarket__factory(deployer).deploy(
     ZERO_ADDRESS,
-    contracts.feeCalculator.address,
+    feeCalculator.address,
     treasury,
-    contracts.premiaReferral.address,
+    premiaReferral.address,
   );
 
   console.log(
-    `premiaMarket deployed at ${premiaMarket.address} (Args : ${ZERO_ADDRESS} / ${contracts.feeCalculator.address} / ${treasury})`,
+    `premiaMarket deployed at ${premiaMarket.address} (Args : ${ZERO_ADDRESS} / ${feeCalculator.address} / ${treasury})`,
   );
 
-  await contracts.premiaReferral.addWhitelisted([
+  await premiaReferral.addWhitelisted([
     premiaOptionBusd.address,
     premiaMarket.address,
     // premiaOptionEth.address,
@@ -113,16 +137,13 @@ async function main() {
     // premiaOptionWbtc.address,
   ]);
 
-  console.log('Whitelisted dai premiaOption contract on PremiaMarket');
+  console.log('Whitelisted busd premiaOption contract on PremiaMarket');
 
   await premiaOptionBusd.setWhitelistedUniswapRouters(uniswapRouters);
   console.log('Whitelisted uniswap routers on PremiaOption Dai');
 
-  await contracts.premiaMaker.addWhitelistedRouter(uniswapRouters);
-  console.log('Whitelisted uniswap routers on PremiaMaker');
-
   await premiaMarket.addWhitelistedPaymentTokens([busd]);
-  console.log('Added dai as market payment token');
+  console.log('Added busd as market payment token');
 
   // Badger routing : Badger -> Wbtc -> Weth
   // await contracts.premiaMaker.setCustomPath(
@@ -136,22 +157,16 @@ async function main() {
   // console.log('Added badger custom routing');
 
   if (treasury !== deployer.address) {
-    await contracts.feeCalculator.transferOwnership(treasury);
+    await feeCalculator.transferOwnership(treasury);
     console.log(`FeeCalculator ownership transferred to ${treasury}`);
-
-    await contracts.premiaFeeDiscount.transferOwnership(treasury);
-    console.log(`PremiaFeeDiscount ownership transferred to ${treasury}`);
-
-    await contracts.premiaMaker.transferOwnership(treasury);
-    console.log(`PremiaMaker ownership transferred to ${treasury}`);
 
     await premiaMarket.transferOwnership(treasury);
     console.log(`PremiaMarket ownership transferred to ${treasury}`);
 
     await premiaOptionBusd.transferOwnership(treasury);
-    console.log(`PremiaOption DAI ownership transferred to ${treasury}`);
+    console.log(`PremiaOption BUSD ownership transferred to ${treasury}`);
 
-    await contracts.premiaReferral.transferOwnership(treasury);
+    await premiaReferral.transferOwnership(treasury);
     console.log(`PremiaReferral ownership transferred to ${treasury}`);
   }
 }
