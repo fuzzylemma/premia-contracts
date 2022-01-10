@@ -1,0 +1,29 @@
+name: testing
+on: [push]
+jobs:
+  test:
+    runs-on: self-hosted
+    env:
+      API_KEY_ALCHEMY: ${{ secrets.API_KEY_ALCHEMY }}
+      API_KEY_ETHERSCAN: ${{ secrets.API_KEY_ETHERSCAN }}
+      PKEY_ETH_MAIN: ${{ secrets.PKEY_ETH_MAIN }}
+      PKEY_ETH_TEST: ${{ secrets.PKEY_ETH_TEST }}
+      FORK_MODE: false
+      REPORT_GAS: false
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+      - run: npm install -g yarn
+      - run: yarn install  
+      - run: yarn run hardhat test test/core/* 
+      - run: yarn run hardhat test test/keeper/* 
+      - run: yarn run hardhat test test/mining/*  
+      - run: yarn run hardhat test test/oracle/* 
+      - run: yarn run hardhat test test/pool/* 
+      - run: yarn run hardhat test test/staking/* 
+      - run: yarn run hardhat test test/utils/* 
+      - run: yarn run hardhat test test/PremiaDevFund.test.ts 
+      - run: yarn run hardhat test test/PremiaMaker.test.ts 
+        
